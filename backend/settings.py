@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "attendance",
     "grades",
     "notes",
+     "rest_framework",
 ]
 
 MIDDLEWARE = [
