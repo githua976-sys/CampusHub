@@ -48,6 +48,10 @@ INSTALLED_APPS = [
     "grades",
     "notes",
      "rest_framework",
+      "corsheaders",
+
+    "django.contrib.admin",
+    "django.contrib.auth",
 ]
 
 MIDDLEWARE = [
