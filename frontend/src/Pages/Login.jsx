@@ -3,62 +3,87 @@ import { useNavigate } from "react-router-dom";
 import axios from "../api/axios";
 
 export default function Login() {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
-    const [username, setUsername] = useState("");
-    const [password, setPassword] = useState("");
-    const [error, setError] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-    const handleLogin = async (e) => {
-        e.preventDefault();
+  const handleLogin = async (e) => {
+    e.preventDefault();
 
-        setError("");
+    setLoading(true);
+    setError("");
 
-        try {
-            const response = await axios.post("token/", {
-                username,
-                password,
-            });
+    try {
+      const response = await axios.post("/token/", {
+        username: username.trim(),
+        password,
+      });
 
-            localStorage.setItem("access", response.data.access);
-            localStorage.setItem("refresh", response.data.refresh);
+      console.log("Login Success:", response.data);
 
-            alert("Login Successful!");
+      localStorage.setItem("access", response.data.access);
+      localStorage.setItem("refresh", response.data.refresh);
 
-            navigate("/dashboard");
+      axios.defaults.headers.common[
+        "Authorization"
+      ] = `Bearer ${response.data.access}`;
 
-        } catch (err) {
-            setError("Invalid username or password");
-        }
-    };
+      alert("Login Successful!");
 
-    return (
-        <div className="login-container">
-            <form className="login-form" onSubmit={handleLogin}>
+      navigate("/dashboard");
+    } catch (err) {
+      console.error(err);
 
-                <h2>CampusHub Login</h2>
+      if (err.response) {
+        setError(err.response.data.detail || "Login failed");
+      } else {
+        setError("Unable to connect to the server.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
-                {error && <p className="error">{error}</p>}
+  return (
+    <div className="login-container">
+      <form className="login-form" onSubmit={handleLogin}>
+        <h2>CampusHub Login</h2>
 
-                <input
-                    type="text"
-                    placeholder="Username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                />
+        {error && (
+          <p
+            style={{
+              color: "red",
+              marginBottom: "15px",
+              textAlign: "center",
+            }}
+          >
+            {error}
+          </p>
+        )}
 
-                <input
-                    type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                />
+        <input
+          type="text"
+          placeholder="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          required
+        />
 
-                <button type="submit">
-                    Login
-                </button>
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
 
-            </form>
-        </div>
-    );
+        <button type="submit" disabled={loading}>
+          {loading ? "Logging in..." : "Login"}
+        </button>
+      </form>
+    </div>
+  );
 }
