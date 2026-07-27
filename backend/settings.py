@@ -50,8 +50,7 @@ INSTALLED_APPS = [
      "rest_framework",
       "corsheaders",
 
-    "django.contrib.admin",
-    "django.contrib.auth",
+   
 ]
 
 MIDDLEWARE = [
@@ -64,9 +63,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
         "corsheaders.middleware.CorsMiddleware",
 
-    "django.middleware.security.SecurityMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.common.CommonMiddleware",
+  
 ]
 
 ROOT_URLCONF = 'backend.urls'
