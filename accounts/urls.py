@@ -1,10 +1,6 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import ProfileViewSet
-
-router = DefaultRouter()
-router.register(r'profiles', ProfileViewSet)
+from django.urls import path
+from .views import MeView
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path("me/", MeView.as_view(), name="me"),
 ]
