@@ -1,89 +1,79 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "../api/axios";
+import api from "../api/axios";
+import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
-  const navigate = useNavigate();
+    const navigate = useNavigate();
+    const { login } = useAuth();
 
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
+    const handleLogin = async (e) => {
+        e.preventDefault();
 
-    setLoading(true);
-    setError("");
+        setError("");
+        setLoading(true);
 
-    try {
-      const response = await axios.post("/token/", {
-        username: username.trim(),
-        password,
-      });
+        try {
+            // Get JWT tokens
+            const response = await api.post("token/", {
+                username,
+                password,
+            });
 
-      console.log("Login Success:", response.data);
+            const { access, refresh } = response.data;
 
-      localStorage.setItem("access", response.data.access);
-      localStorage.setItem("refresh", response.data.refresh);
+            // Save tokens and load user
+            await login(access, refresh);
 
-      axios.defaults.headers.common[
-        "Authorization"
-      ] = `Bearer ${response.data.access}`;
+            // Redirect to dashboard
+            navigate("/dashboard");
 
-      alert("Login Successful!");
+        } catch (err) {
+            console.error(err);
+            setError("Invalid username or password");
+        } finally {
+            setLoading(false);
+        }
+    };
 
-      navigate("/dashboard");
-    } catch (err) {
-      console.error(err);
+    return (
+        <div className="login-container">
+            <form className="login-form" onSubmit={handleLogin}>
 
-      if (err.response) {
-        setError(err.response.data.detail || "Login failed");
-      } else {
-        setError("Unable to connect to the server.");
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+                <h2>CampusHub Login</h2>
 
-  return (
-    <div className="login-container">
-      <form className="login-form" onSubmit={handleLogin}>
-        <h2>CampusHub Login</h2>
+                {error && (
+                    <p style={{ color: "red" }}>
+                        {error}
+                    </p>
+                )}
 
-        {error && (
-          <p
-            style={{
-              color: "red",
-              marginBottom: "15px",
-              textAlign: "center",
-            }}
-          >
-            {error}
-          </p>
-        )}
+                <input
+                    type="text"
+                    placeholder="Username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    required
+                />
 
-        <input
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-        />
+                <input
+                    type="password"
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                />
 
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+                <button type="submit" disabled={loading}>
+                    {loading ? "Logging in..." : "Login"}
+                </button>
 
-        <button type="submit" disabled={loading}>
-          {loading ? "Logging in..." : "Login"}
-        </button>
-      </form>
-    </div>
-  );
+            </form>
+        </div>
+    );
 }
