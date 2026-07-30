@@ -3,6 +3,8 @@ import api from "../api/axios";
 
 export default function Students() {
     const [students, setStudents] = useState([]);
+    const [users, setUsers] = useState([]);
+    const [departments, setDepartments] = useState([]);
 
     const [user, setUser] = useState("");
     const [registrationNumber, setRegistrationNumber] = useState("");
@@ -10,9 +12,9 @@ export default function Students() {
 
     const token = localStorage.getItem("access");
 
-    // ============================
-    // GET STUDENTS
-    // ============================
+    // ==========================
+    // Fetch Students
+    // ==========================
     const fetchStudents = async () => {
         try {
             const response = await api.get("students/", {
@@ -22,18 +24,57 @@ export default function Students() {
             });
 
             setStudents(response.data);
+
         } catch (error) {
-            console.error("Error fetching students:", error);
+            console.error(error);
+        }
+    };
+
+    // ==========================
+    // Fetch Users
+    // ==========================
+    const fetchUsers = async () => {
+        try {
+            const response = await api.get("users/", {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            setUsers(response.data);
+
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    // ==========================
+    // Fetch Departments
+    // ==========================
+    const fetchDepartments = async () => {
+        try {
+            const response = await api.get("departments/", {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            setDepartments(response.data);
+
+        } catch (error) {
+            console.error(error);
         }
     };
 
     useEffect(() => {
         fetchStudents();
+        fetchUsers();
+        fetchDepartments();
     }, []);
 
-    // ============================
-    // ADD STUDENT
-    // ============================
+    // ==========================
+    // Add Student
+    // ==========================
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -52,6 +93,8 @@ export default function Students() {
                 }
             );
 
+            alert("Student Added Successfully");
+
             setUser("");
             setRegistrationNumber("");
             setDepartment("");
@@ -64,19 +107,26 @@ export default function Students() {
         }
     };
 
-    // ============================
-    // DELETE STUDENT
-    // ============================
+    // ==========================
+    // Delete Student
+    // ==========================
     const deleteStudent = async (id) => {
 
-        if (!window.confirm("Delete this student?")) return;
+        const confirmDelete = window.confirm(
+            "Are you sure you want to delete this student?"
+        );
+
+        if (!confirmDelete) return;
 
         try {
+
             await api.delete(`students/${id}/`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
             });
+
+            alert("Student Deleted");
 
             fetchStudents();
 
@@ -86,19 +136,33 @@ export default function Students() {
     };
 
     return (
-        <div style={{ padding: "20px" }}>
+        <div style={{ padding: "30px" }}>
 
-            <h1>Students</h1>
+            <h1>Students Management</h1>
+
+            <hr />
 
             <form onSubmit={handleSubmit}>
 
-                <input
-                    type="number"
-                    placeholder="User ID"
+                <h3>Add Student</h3>
+
+                <select
                     value={user}
                     onChange={(e) => setUser(e.target.value)}
                     required
-                />
+                >
+                    <option value="">Select User</option>
+
+                    {users.map((u) => (
+                        <option
+                            key={u.id}
+                            value={u.id}
+                        >
+                            {u.username}
+                        </option>
+                    ))}
+
+                </select>
 
                 <br /><br />
 
@@ -114,13 +178,25 @@ export default function Students() {
 
                 <br /><br />
 
-                <input
-                    type="number"
-                    placeholder="Department ID"
+                <select
                     value={department}
                     onChange={(e) => setDepartment(e.target.value)}
                     required
-                />
+                >
+                    <option value="">
+                        Select Department
+                    </option>
+
+                    {departments.map((dept) => (
+                        <option
+                            key={dept.id}
+                            value={dept.id}
+                        >
+                            {dept.name}
+                        </option>
+                    ))}
+
+                </select>
 
                 <br /><br />
 
@@ -132,13 +208,19 @@ export default function Students() {
 
             <hr />
 
-            <table border="1" cellPadding="10" width="100%">
+            <h2>Students List</h2>
+
+            <table
+                border="1"
+                cellPadding="10"
+                width="100%"
+            >
 
                 <thead>
 
                     <tr>
                         <th>ID</th>
-                        <th>User</th>
+                        <th>Username</th>
                         <th>Registration Number</th>
                         <th>Department</th>
                         <th>Actions</th>
@@ -148,35 +230,57 @@ export default function Students() {
 
                 <tbody>
 
-                    {students.map((student) => (
+                    {students.length === 0 ? (
 
-                        <tr key={student.id}>
-
-                            <td>{student.id}</td>
-
-                            <td>{student.username ?? student.user}</td>
-
-                            <td>{student.registration_number}</td>
-
-                            <td>{student.department_name ?? student.department}</td>
-
-                            <td>
-
-                                <button>Edit</button>
-
-                                <button
-                                    onClick={() =>
-                                        deleteStudent(student.id)
-                                    }
-                                >
-                                    Delete
-                                </button>
-
+                        <tr>
+                            <td colSpan="5">
+                                No students found.
                             </td>
-
                         </tr>
 
-                    ))}
+                    ) : (
+
+                        students.map((student) => (
+
+                            <tr key={student.id}>
+
+                                <td>{student.id}</td>
+
+                                <td>
+                                    {student.username ?? student.user}
+                                </td>
+
+                                <td>
+                                    {student.registration_number}
+                                </td>
+
+                                <td>
+                                    {student.department_name ?? student.department}
+                                </td>
+
+                                <td>
+
+                                    <button>
+                                        Edit
+                                    </button>
+
+                                    {" "}
+
+                                    <button
+                                        onClick={() =>
+                                            deleteStudent(student.id)
+                                        }
+                                    >
+                                        Delete
+                                    </button>
+
+                                </td>
+
+                            </tr>
+
+                        ))
+
+                    )}
 
                 </tbody>
 
