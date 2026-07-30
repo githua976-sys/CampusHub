@@ -1,13 +1,12 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth.models import User
+from rest_framework import viewsets
+from rest_framework.serializers import ModelSerializer
 
-from .serializers import UserSerializer
+class UserSerializer(ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["id", "username"]
 
-
-class MeView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        serializer = UserSerializer(request.user)
-        return Response(serializer.data)
+class UserViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
