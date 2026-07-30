@@ -2,10 +2,12 @@ from django.db import models
 from lecturers.models import Lecturer
 from courses.models import Course
 
-# Create your models here.
+
 class Note(models.Model):
 
     title = models.CharField(max_length=200)
+
+    content = models.TextField()
 
     course = models.ForeignKey(
         Course,
@@ -16,8 +18,6 @@ class Note(models.Model):
         Lecturer,
         on_delete=models.CASCADE
     )
-
-    file = models.FileField(upload_to='notes/')
 
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
