@@ -12,6 +12,7 @@ import Notes from "../pages/Notes";
 import Unauthorized from "../pages/Unauthorized";
 
 import ProtectedRoute from "../components/ProtectedRoute";
+import Layout from "../components/Layout";
 
 export default function AppRoutes() {
     return (
@@ -24,39 +25,39 @@ export default function AppRoutes() {
             {/* Admin */}
             <Route
                 element={
-                    <ProtectedRoute
-                        allowedRoles={["Admin"]}
-                    />
+                    <ProtectedRoute allowedRoles={["Admin"]} />
                 }
             >
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/students" element={<Students />} />
-                <Route path="/lecturers" element={<Lecturers />} />
-                <Route path="/departments" element={<Departments />} />
-                <Route path="/courses" element={<Courses />} />
+                <Route element={<Layout />}>
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/students" element={<Students />} />
+                    <Route path="/lecturers" element={<Lecturers />} />
+                    <Route path="/departments" element={<Departments />} />
+                    <Route path="/courses" element={<Courses />} />
+                </Route>
             </Route>
 
             {/* Lecturer */}
             <Route
                 element={
-                    <ProtectedRoute
-                        allowedRoles={["Lecturer"]}
-                    />
+                    <ProtectedRoute allowedRoles={["Lecturer"]} />
                 }
             >
-                <Route path="/attendance" element={<Attendance />} />
-                <Route path="/grades" element={<Grades />} />
+                <Route element={<Layout />}>
+                    <Route path="/attendance" element={<Attendance />} />
+                    <Route path="/grades" element={<Grades />} />
+                </Route>
             </Route>
 
             {/* Student */}
             <Route
                 element={
-                    <ProtectedRoute
-                        allowedRoles={["Student"]}
-                    />
+                    <ProtectedRoute allowedRoles={["Student"]} />
                 }
             >
-                <Route path="/notes" element={<Notes />} />
+                <Route element={<Layout />}>
+                    <Route path="/notes" element={<Notes />} />
+                </Route>
             </Route>
 
         </Routes>
