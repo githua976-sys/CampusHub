@@ -23,11 +23,16 @@ export default function AppRoutes() {
             <Route path="/login" element={<Login />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
 
-            {/* Protected routes */}
-            <Route element={<ProtectedRoute />}>
+            {/* Dashboard - all authenticated users */}
+            <Route element={<ProtectedRoute allowedRoles={["Admin", "Lecturer", "Student"]} />}>
                 <Route element={<Layout />}>
-
                     <Route path="/dashboard" element={<Dashboard />} />
+                </Route>
+            </Route>
+
+            {/* Admin routes */}
+            <Route element={<ProtectedRoute allowedRoles={["Admin"]} />}>
+                <Route element={<Layout />}>
                     <Route path="/students" element={<Students />} />
                     <Route path="/lecturers" element={<Lecturers />} />
                     <Route path="/departments" element={<Departments />} />
@@ -35,11 +40,10 @@ export default function AppRoutes() {
                     <Route path="/attendance" element={<Attendance />} />
                     <Route path="/grades" element={<Grades />} />
                     <Route path="/notes" element={<Notes />} />
-
                 </Route>
             </Route>
 
-            {/* Catch unknown routes */}
+            {/* Unknown route */}
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
 
         </Routes>
