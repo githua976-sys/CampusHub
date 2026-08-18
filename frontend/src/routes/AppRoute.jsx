@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 
 import Attendance from "../Pages/Attendance";
 import Courses from "../Pages/courses";
@@ -18,47 +18,14 @@ export default function AppRoutes() {
     return (
         <Routes>
 
+            {/* Redirect homepage to login */}
+            <Route path="/" element={<Navigate to="/login" replace />} />
+
             {/* Public */}
             <Route path="/login" element={<Login />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
 
-            {/* Admin */}
-            <Route
-                element={
-                    <ProtectedRoute allowedRoles={["Admin"]} />
-                }
-            >
-                <Route element={<Layout />}>
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/students" element={<Students />} />
-                    <Route path="/lecturers" element={<Lecturers />} />
-                    <Route path="/departments" element={<Departments />} />
-                    <Route path="/courses" element={<Courses />} />
-                </Route>
-            </Route>
-
-            {/* Lecturer */}
-            <Route
-                element={
-                    <ProtectedRoute allowedRoles={["Lecturer"]} />
-                }
-            >
-                <Route element={<Layout />}>
-                    <Route path="/attendance" element={<Attendance />} />
-                    <Route path="/grades" element={<Grades />} />
-                </Route>
-            </Route>
-
-            {/* Student */}
-            <Route
-                element={
-                    <ProtectedRoute allowedRoles={["Student"]} />
-                }
-            >
-                <Route element={<Layout />}>
-                    <Route path="/notes" element={<Notes />} />
-                </Route>
-            </Route>
+            {/* rest of your routes... */}
 
         </Routes>
     );
