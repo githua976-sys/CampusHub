@@ -1,15 +1,15 @@
 import { Routes, Route } from "react-router-dom";
 
-import Login from "../pages/Login";
-import Dashboard from "../pages/Dashboard";
-import Students from "../pages/Students";
-import Lecturers from "../pages/Lecturers";
-import Departments from "../pages/Departments";
-import Courses from "../pages/Courses";
-import Attendance from "../pages/Attendance";
-import Grades from "../pages/Grades";
-import Notes from "../pages/Notes";
-import Unauthorized from "../pages/Unauthorized";
+import Attendance from "../Pages/Attendance";
+import Courses from "../Pages/courses";
+import Dashboard from "../Pages/Dashboard";
+import Departments from "../Pages/Departments";
+import Grades from "../Pages/Grades";
+import Lecturers from "../Pages/Lecturers";
+import Login from "../Pages/Login";
+import Notes from "../Pages/Notes";
+import Students from "../Pages/Students";
+import Unauthorized from "../Pages/Unauthorised";
 
 import ProtectedRoute from "../components/ProtectedRoute";
 import Layout from "../components/Layout";
