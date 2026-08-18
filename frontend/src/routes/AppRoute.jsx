@@ -18,14 +18,29 @@ export default function AppRoutes() {
     return (
         <Routes>
 
-            {/* Redirect homepage to login */}
+            {/* Public routes */}
             <Route path="/" element={<Navigate to="/login" replace />} />
-
-            {/* Public */}
             <Route path="/login" element={<Login />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
 
-            {/* rest of your routes... */}
+            {/* Protected routes */}
+            <Route element={<ProtectedRoute />}>
+                <Route element={<Layout />}>
+
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/students" element={<Students />} />
+                    <Route path="/lecturers" element={<Lecturers />} />
+                    <Route path="/departments" element={<Departments />} />
+                    <Route path="/courses" element={<Courses />} />
+                    <Route path="/attendance" element={<Attendance />} />
+                    <Route path="/grades" element={<Grades />} />
+                    <Route path="/notes" element={<Notes />} />
+
+                </Route>
+            </Route>
+
+            {/* Catch unknown routes */}
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
 
         </Routes>
     );
