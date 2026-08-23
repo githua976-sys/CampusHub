@@ -9,6 +9,13 @@ from .views import (
 
 urlpatterns = [
 
+    # Put callback BEFORE <str:reference>/
+    path(
+        "callback/",
+        mpesa_callback_view,
+        name="mpesa-callback",
+    ),
+
     path(
         "initiate/",
         InitiatePaymentView.as_view(),
@@ -19,11 +26,5 @@ urlpatterns = [
         "<str:reference>/",
         PaymentStatusView.as_view(),
         name="payment-status",
-    ),
-
-    path(
-        "callback/",
-        mpesa_callback_view,
-        name="mpesa-callback",
     ),
 ]
