@@ -6,7 +6,7 @@ from .models import Profile
 class AdminUserCreateSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     role = serializers.ChoiceField(
-        choices=Profile.RoleChoices.choices
+        choices=Profile.ROLE_CHOICES
     )
 
     class Meta:
