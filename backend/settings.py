@@ -51,7 +51,7 @@ INSTALLED_APPS = [
     "notes",
     "rest_framework",
     "corsheaders",
-
+    "payments",
    
 ]
 
