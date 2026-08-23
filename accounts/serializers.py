@@ -1,29 +1,37 @@
-from rest_framework import serializers
 from django.contrib.auth.models import User
-
-# Used for /api/users/
-class UserListSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = [
-            "id",
-            "username",
-        ]
+from rest_framework import serializers
+from .models import Profile
 
 
-# Used for /api/me/
-class UserSerializer(serializers.ModelSerializer):
-    role = serializers.CharField(source="profile.role", read_only=True)
-    phone = serializers.CharField(source="profile.phone", read_only=True)
+class AdminUserCreateSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+    role = serializers.ChoiceField(
+        choices=Profile.RoleChoices.choices
+    )
 
     class Meta:
         model = User
         fields = [
-            "id",
             "username",
             "email",
             "first_name",
             "last_name",
+            "password",
             "role",
-            "phone",
         ]
+
+    def create(self, validated_data):
+        role = validated_data.pop("role")
+        password = validated_data.pop("password")
+
+        user = User.objects.create_user(
+            password=password,
+            **validated_data
+        )
+
+        Profile.objects.create(
+            user=user,
+            role=role
+        )
+
+        return user
