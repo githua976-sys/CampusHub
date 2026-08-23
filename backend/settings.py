@@ -178,3 +178,33 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+MPESA_ENVIRONMENT = config(
+    "MPESA_ENVIRONMENT",
+    default="sandbox"
+)
+
+MPESA_CONSUMER_KEY = config(
+    "MPESA_CONSUMER_KEY",
+    default=""
+)
+
+MPESA_CONSUMER_SECRET = config(
+    "MPESA_CONSUMER_SECRET",
+    default=""
+)
+
+MPESA_EXPRESS_SHORTCODE = config(
+    "MPESA_EXPRESS_SHORTCODE",
+    default=""
+)
+
+MPESA_PASSKEY = config(
+    "MPESA_PASSKEY",
+    default=""
+)
+
+MPESA_CALLBACK_URL = config(
+    "MPESA_CALLBACK_URL",
+    default=""
+)
