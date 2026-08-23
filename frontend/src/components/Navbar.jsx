@@ -52,18 +52,10 @@ export default function Navbar() {
                 {user && (
                     <>
                         <span>
-                            👤 {user.username} ({user.role})
+                            👤  ({user.role})
                         </span>
 
-                        <button
-                            onClick={handleLogout}
-                            style={{
-                                padding: "8px 15px",
-                                cursor: "pointer",
-                            }}
-                        >
-                            Logout
-                        </button>
+                        
                     </>
                 )}
             </div>
