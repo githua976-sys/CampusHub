@@ -31,7 +31,7 @@ urlpatterns = [
     path("api/", include("attendance.urls")),
     path("api/", include("grades.urls")),
     path("api/", include("notes.urls")),
-
+    path("api/payments/",include("payments.urls")),
       # JWT
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
