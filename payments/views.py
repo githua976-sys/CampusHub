@@ -137,13 +137,12 @@ class InitiatePaymentView(APIView):
             payment.save()
 
             return Response(
-                {
-                    "error":
-                        "An error occurred while initiating payment."
-                },
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
+    {
+        "error": "An error occurred while initiating payment.",
+        "details": str(e),
+    },
+    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+)
 
 class PaymentStatusView(APIView):
 
