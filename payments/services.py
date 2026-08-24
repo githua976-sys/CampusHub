@@ -16,14 +16,23 @@ class MpesaService:
 
     def get_access_token(self):
 
-        url = (
-            f"{self.base_url}"
-            "/oauth/v1/generate"
-            "?grant_type=client_credentials"
+        print(
+            "KEY EXISTS:",
+            bool(settings.MPESA_CONSUMER_KEY)
         )
+
+        print(
+            "SECRET EXISTS:",
+            bool(settings.MPESA_CONSUMER_SECRET)
+        )
+
+        url = f"{self.base_url}/oauth/v1/generate"
 
         response = requests.get(
             url,
+            params={
+                "grant_type": "client_credentials"
+            },
             auth=(
                 settings.MPESA_CONSUMER_KEY,
                 settings.MPESA_CONSUMER_SECRET,
@@ -31,9 +40,28 @@ class MpesaService:
             timeout=15,
         )
 
+        print(
+            "MPESA OAUTH STATUS:",
+            response.status_code
+        )
+
+        print(
+            "MPESA OAUTH RESPONSE:",
+            response.text
+        )
+
         response.raise_for_status()
 
-        return response.json().get("access_token")
+        data = response.json()
+
+        access_token = data.get("access_token")
+
+        if not access_token:
+            raise Exception(
+                f"Safaricom did not return an access token: {data}"
+            )
+
+        return access_token
 
     @staticmethod
     def generate_password(timestamp):
