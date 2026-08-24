@@ -16,12 +16,19 @@ const Dashboard = () => {
 
   const [loading, setLoading] = useState(true);
 
-  // Student payment states
+  // =========================
+  // STUDENT PAYMENT STATES
+  // =========================
+
   const [amount, setAmount] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [paymentMessage, setPaymentMessage] = useState("");
   const [paymentError, setPaymentError] = useState("");
+
+  // =========================
+  // ADMIN DASHBOARD STATISTICS
+  // =========================
 
   useEffect(() => {
     if (user?.role !== "Admin") {
@@ -68,6 +75,10 @@ const Dashboard = () => {
     loadStats();
   }, [user]);
 
+  // =========================
+  // INITIATE M-PESA PAYMENT
+  // =========================
+
   const handlePayment = async (e) => {
     e.preventDefault();
 
@@ -92,19 +103,25 @@ const Dashboard = () => {
         }
       );
 
+      console.log("Payment response:", response.data);
+
       setPaymentMessage(
         response.data.message ||
-          "STK Push initiated. Check your phone."
+          "STK Push initiated successfully. Check your phone."
       );
 
       setAmount("");
       setPhoneNumber("");
 
     } catch (error) {
-      console.error(error);
+      console.error(
+        "Payment error:",
+        error.response?.data || error
+      );
 
       setPaymentError(
-        error.response?.data?.error ||
+        error.response?.data?.details ||
+          error.response?.data?.error ||
           "Payment could not be initiated."
       );
     } finally {
@@ -112,15 +129,18 @@ const Dashboard = () => {
     }
   };
 
-  // =========================
+  // ==================================================
   // STUDENT DASHBOARD
-  // =========================
+  // ==================================================
 
   if (user?.role === "Student") {
     return (
       <div className="p-6">
 
+        {/* Welcome */}
+
         <div className="mb-8">
+
           <h1 className="text-3xl font-bold">
             Welcome, {user?.username}
           </h1>
@@ -128,11 +148,14 @@ const Dashboard = () => {
           <p className="text-gray-500 mt-2">
             Student Dashboard
           </p>
+
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-          {/* Payment Card */}
+          {/* =========================
+              M-PESA PAYMENT
+          ========================= */}
 
           <div className="bg-white rounded-xl shadow p-6">
 
@@ -144,21 +167,30 @@ const Dashboard = () => {
               Pay your school fees using M-Pesa.
             </p>
 
+            {/* Success message */}
+
             {paymentMessage && (
-              <div className="bg-green-100 text-green-700 p-3 rounded mb-4">
+              <div className="bg-green-100 border border-green-300 text-green-700 p-3 rounded mb-4">
                 {paymentMessage}
               </div>
             )}
 
+            {/* Error message */}
+
             {paymentError && (
-              <div className="bg-red-100 text-red-700 p-3 rounded mb-4">
+              <div className="bg-red-100 border border-red-300 text-red-700 p-3 rounded mb-4">
+                <strong>Payment Error:</strong>
+                <br />
                 {paymentError}
               </div>
             )}
 
             <form onSubmit={handlePayment}>
 
+              {/* Amount */}
+
               <div className="mb-4">
+
                 <label className="block mb-2 font-medium">
                   Amount
                 </label>
@@ -171,12 +203,16 @@ const Dashboard = () => {
                     setAmount(e.target.value)
                   }
                   placeholder="Enter amount"
-                  className="w-full border p-3 rounded"
+                  className="w-full border border-gray-300 p-3 rounded-lg"
                   required
                 />
+
               </div>
 
+              {/* Phone number */}
+
               <div className="mb-4">
+
                 <label className="block mb-2 font-medium">
                   M-Pesa Phone Number
                 </label>
@@ -188,26 +224,37 @@ const Dashboard = () => {
                     setPhoneNumber(e.target.value)
                   }
                   placeholder="2547XXXXXXXX"
-                  className="w-full border p-3 rounded"
+                  className="w-full border border-gray-300 p-3 rounded-lg"
                   required
                 />
+
+                <p className="text-sm text-gray-500 mt-1">
+                  Example: 254792275202
+                </p>
+
               </div>
+
+              {/* Payment button */}
 
               <button
                 type="submit"
                 disabled={paymentLoading}
-                className="w-full bg-green-600 text-white p-3 rounded hover:bg-green-700 disabled:opacity-50"
+                className="w-full bg-green-600 text-white p-3 rounded-lg hover:bg-green-700 disabled:opacity-50"
               >
+
                 {paymentLoading
-                  ? "Processing..."
+                  ? "Processing Payment..."
                   : "Pay with M-Pesa"}
+
               </button>
 
             </form>
 
           </div>
 
-          {/* Student Information */}
+          {/* =========================
+              STUDENT ACCOUNT
+          ========================= */}
 
           <div className="bg-white rounded-xl shadow p-6">
 
@@ -215,22 +262,37 @@ const Dashboard = () => {
               My Account
             </h2>
 
-            <div className="space-y-3">
+            <div className="space-y-4">
 
-              <p>
-                <strong>Username:</strong>{" "}
-                {user?.username}
-              </p>
+              <div>
+                <p className="text-gray-500 text-sm">
+                  Username
+                </p>
 
-              <p>
-                <strong>Email:</strong>{" "}
-                {user?.email}
-              </p>
+                <p className="font-medium">
+                  {user?.username}
+                </p>
+              </div>
 
-              <p>
-                <strong>Role:</strong>{" "}
-                {user?.role}
-              </p>
+              <div>
+                <p className="text-gray-500 text-sm">
+                  Email
+                </p>
+
+                <p className="font-medium">
+                  {user?.email}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-gray-500 text-sm">
+                  Role
+                </p>
+
+                <p className="font-medium">
+                  {user?.role}
+                </p>
+              </div>
 
             </div>
 
@@ -242,14 +304,17 @@ const Dashboard = () => {
     );
   }
 
-  // =========================
+  // ==================================================
   // ADMIN DASHBOARD
-  // =========================
+  // ==================================================
 
   return (
     <div className="p-6">
 
+      {/* Welcome */}
+
       <div className="mb-8">
+
         <h1 className="text-3xl font-bold">
           Welcome, {user?.username}
         </h1>
@@ -257,11 +322,13 @@ const Dashboard = () => {
         <p className="text-gray-500 mt-2">
           Role: {user?.role}
         </p>
+
       </div>
 
       {loading ? (
         <p>Loading dashboard...</p>
       ) : (
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
           <DashboardCard
@@ -295,12 +362,17 @@ const Dashboard = () => {
           />
 
         </div>
+
       )}
 
     </div>
   );
 };
 
+
+// ==================================================
+// ADMIN DASHBOARD CARD
+// ==================================================
 
 const DashboardCard = ({ title, value }) => {
   return (
