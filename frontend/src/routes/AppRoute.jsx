@@ -10,6 +10,7 @@ import Login from "../Pages/Login";
 import Notes from "../Pages/Notes";
 import Students from "../Pages/Students";
 import Unauthorized from "../Pages/Unauthorised";
+import Payments from "../Pages/payments";
 
 import ProtectedRoute from "../components/ProtectedRoute";
 import Layout from "../components/Layout";
@@ -42,6 +43,16 @@ export default function AppRoutes() {
                     <Route path="/notes" element={<Notes />} />
                 </Route>
             </Route>
+            
+             {/*protected route */}
+            <Route
+  path="/payments"
+  element={
+    <ProtectedRoute allowedRoles={["Admin", "Student"]}>
+      <Payments />
+    </ProtectedRoute>
+  }
+/>
 
             {/* Unknown route */}
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
