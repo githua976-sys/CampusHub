@@ -1,6 +1,8 @@
+
 import { useEffect, useState } from "react";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
+import "./Dashboard.css";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -15,20 +17,11 @@ const Dashboard = () => {
   });
 
   const [loading, setLoading] = useState(true);
-
-  // =========================
-  // STUDENT PAYMENT STATES
-  // =========================
-
   const [amount, setAmount] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [paymentMessage, setPaymentMessage] = useState("");
   const [paymentError, setPaymentError] = useState("");
-
-  // =========================
-  // ADMIN DASHBOARD STATISTICS
-  // =========================
 
   useEffect(() => {
     if (user?.role !== "Admin") {
@@ -38,35 +31,34 @@ const Dashboard = () => {
 
     const loadStats = async () => {
       try {
-        const [
-          students,
-          lecturers,
-          departments,
-          courses,
-          enrollments,
-          payments,
-        ] = await Promise.all([
-          api.get("students/"),
-          api.get("lecturers/"),
-          api.get("departments/"),
-          api.get("courses/"),
-          api.get("enrollments/"),
-          api.get("payments/"),
-        ]);
+        const endpoints = [
+          "students/",
+          "lecturers/",
+          "departments/",
+          "courses/",
+          "enrollments/",
+          "payments/",
+        ];
+
+        const responses = await Promise.all(
+          endpoints.map((endpoint) => api.get(endpoint))
+        );
+
+        const countItems = (data) => {
+          if (Array.isArray(data)) return data.length;
+          return data?.count ?? data?.results?.length ?? 0;
+        };
 
         setStats({
-          students: students.data.length,
-          lecturers: lecturers.data.length,
-          departments: departments.data.length,
-          courses: courses.data.length,
-          enrollments: enrollments.data.length,
-          payments: payments.data.length,
+          students: countItems(responses[0].data),
+          lecturers: countItems(responses[1].data),
+          departments: countItems(responses[2].data),
+          courses: countItems(responses[3].data),
+          enrollments: countItems(responses[4].data),
+          payments: countItems(responses[5].data),
         });
       } catch (error) {
-        console.error(
-          "Failed to load dashboard statistics:",
-          error
-        );
+        console.error("Failed to load statistics:", error);
       } finally {
         setLoading(false);
       }
@@ -75,320 +67,307 @@ const Dashboard = () => {
     loadStats();
   }, [user]);
 
-  // =========================
-  // INITIATE M-PESA PAYMENT
-  // =========================
-
   const handlePayment = async (e) => {
     e.preventDefault();
-
     setPaymentMessage("");
     setPaymentError("");
 
-    if (!amount || !phoneNumber) {
+    const normalizedPhone = phoneNumber.replace(/[\s+-]/g, "");
+    const validPhone = /^(254|0)?7\d{8}$/.test(normalizedPhone) ||
+      /^(254|0)?1\d{8}$/.test(normalizedPhone);
+
+    if (!amount || Number(amount) < 1 || !Number.isFinite(Number(amount))) {
+      setPaymentError("Enter a valid payment amount of at least KSh 1.");
+      return;
+    }
+
+    if (!validPhone) {
       setPaymentError(
-        "Please enter the amount and M-Pesa phone number."
+        "Enter a valid Kenyan M-Pesa number, for example 0712345678 or 254712345678."
       );
       return;
     }
 
+    const formattedPhone = normalizedPhone.startsWith("0")
+      ? `254${normalizedPhone.slice(1)}`
+      : normalizedPhone.startsWith("254")
+        ? normalizedPhone
+        : `254${normalizedPhone}`;
+
     setPaymentLoading(true);
 
     try {
-      const response = await api.post(
-        "payments/initiate/",
-        {
-          amount: amount,
-          phone_number: phoneNumber,
-        }
-      );
-
-      console.log("Payment response:", response.data);
+      const response = await api.post("payments/initiate/", {
+        amount,
+        phone_number: formattedPhone,
+      });
 
       setPaymentMessage(
-        response.data.message ||
-          "STK Push initiated successfully. Check your phone."
+        response.data?.message ||
+          "Payment request submitted. Check your phone for the M-Pesa prompt and enter your PIN if prompted."
       );
-
       setAmount("");
       setPhoneNumber("");
-
     } catch (error) {
-      console.error(
-        "Payment error:",
-        error.response?.data || error
-      );
+      console.error("Payment error:", error.response?.data || error);
 
+      const data = error.response?.data;
       setPaymentError(
-        error.response?.data?.details ||
-          error.response?.data?.error ||
-          "Payment could not be initiated."
+        data?.details ||
+          data?.error ||
+          data?.detail ||
+          "We couldn't initiate your payment. Please check your details and try again."
       );
     } finally {
       setPaymentLoading(false);
     }
   };
 
-  // ==================================================
-  // STUDENT DASHBOARD
-  // ==================================================
+  const firstName =
+    user?.first_name?.trim() || user?.username || "Student";
 
-  if (user?.role === "Student") {
-    return (
-      <div className="p-6">
+  const statsCards = [
+    { title: "Students", value: stats.students, icon: "♙", color: "blue" },
+    { title: "Lecturers", value: stats.lecturers, icon: "♧", color: "purple" },
+    { title: "Departments", value: stats.departments, icon: "▦", color: "green" },
+    { title: "Courses", value: stats.courses, icon: "▤", color: "orange" },
+    { title: "Enrollments", value: stats.enrollments, icon: "✓", color: "teal" },
+    { title: "Payments", value: stats.payments, icon: "KSh", color: "pink" },
+  ];
 
-        {/* Welcome */}
-
-        <div className="mb-8">
-
-          <h1 className="text-3xl font-bold">
-            Welcome, {user?.username}
-          </h1>
-
-          <p className="text-gray-500 mt-2">
-            Student Dashboard
-          </p>
-
+  return (
+    <div className="ch-dashboard">
+      <header className="ch-topbar">
+        <div>
+          <span className="ch-eyebrow">CAMPUSHUB PORTAL</span>
+          <p className="ch-topbar-subtitle">University Management System</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-          {/* =========================
-              M-PESA PAYMENT
-          ========================= */}
-
-          <div className="bg-white rounded-xl shadow p-6">
-
-            <h2 className="text-xl font-semibold mb-2">
-              Make M-Pesa Payment
-            </h2>
-
-            <p className="text-gray-500 mb-6">
-              Pay your school fees using M-Pesa.
-            </p>
-
-            {/* Success message */}
-
-            {paymentMessage && (
-              <div className="bg-green-100 border border-green-300 text-green-700 p-3 rounded mb-4">
-                {paymentMessage}
-              </div>
-            )}
-
-            {/* Error message */}
-
-            {paymentError && (
-              <div className="bg-red-100 border border-red-300 text-red-700 p-3 rounded mb-4">
-                <strong>Payment Error:</strong>
-                <br />
-                {paymentError}
-              </div>
-            )}
-
-            <form onSubmit={handlePayment}>
-
-              {/* Amount */}
-
-              <div className="mb-4">
-
-                <label className="block mb-2 font-medium">
-                  Amount
-                </label>
-
-                <input
-                  type="number"
-                  min="1"
-                  value={amount}
-                  onChange={(e) =>
-                    setAmount(e.target.value)
-                  }
-                  placeholder="Enter amount"
-                  className="w-full border border-gray-300 p-3 rounded-lg"
-                  required
-                />
-
-              </div>
-
-              {/* Phone number */}
-
-              <div className="mb-4">
-
-                <label className="block mb-2 font-medium">
-                  M-Pesa Phone Number
-                </label>
-
-                <input
-                  type="text"
-                  value={phoneNumber}
-                  onChange={(e) =>
-                    setPhoneNumber(e.target.value)
-                  }
-                  placeholder="2547XXXXXXXX"
-                  className="w-full border border-gray-300 p-3 rounded-lg"
-                  required
-                />
-
-                <p className="text-sm text-gray-500 mt-1">
-                  Example: 254792275202
-                </p>
-
-              </div>
-
-              {/* Payment button */}
-
-              <button
-                type="submit"
-                disabled={paymentLoading}
-                className="w-full bg-green-600 text-white p-3 rounded-lg hover:bg-green-700 disabled:opacity-50"
-              >
-
-                {paymentLoading
-                  ? "Processing Payment..."
-                  : "Pay with M-Pesa"}
-
-              </button>
-
-            </form>
-
+        <div className="ch-user-chip">
+          <div className="ch-avatar">
+            {firstName.charAt(0).toUpperCase()}
           </div>
+          <div className="ch-user-details">
+            <strong>{firstName}</strong>
+            <span>{user?.role || "User"}</span>
+          </div>
+        </div>
+      </header>
 
-          {/* =========================
-              STUDENT ACCOUNT
-          ========================= */}
+      <main className="ch-main">
+        <section className="ch-welcome">
+          <div>
+            <span className="ch-eyebrow">
+              {user?.role === "Admin" ? "ADMINISTRATION" : "STUDENT PORTAL"}
+            </span>
+            <h1>
+              Welcome back, {firstName}
+              <span className="ch-wave"> 👋</span>
+            </h1>
+            <p>
+              {user?.role === "Student"
+                ? "Manage your school fee payments and account details in one place."
+                : "Here is an overview of your university management system."}
+            </p>
+          </div>
+          <div className="ch-date-chip">
+            <span className="ch-status-dot" />
+            Portal active
+          </div>
+        </section>
 
-          <div className="bg-white rounded-xl shadow p-6">
-
-            <h2 className="text-xl font-semibold mb-4">
-              My Account
-            </h2>
-
-            <div className="space-y-4">
-
-              <div>
-                <p className="text-gray-500 text-sm">
-                  Username
-                </p>
-
-                <p className="font-medium">
-                  {user?.username}
-                </p>
+        {user?.role === "Student" ? (
+          <div className="ch-content-grid">
+            <section className="ch-card ch-payment-card">
+              <div className="ch-card-heading">
+                <div className="ch-heading-icon green-icon">KSh</div>
+                <div>
+                  <h2>School fee payment</h2>
+                  <p>Pay securely using M-Pesa STK Push</p>
+                </div>
               </div>
 
-              <div>
-                <p className="text-gray-500 text-sm">
-                  Email
-                </p>
-
-                <p className="font-medium">
-                  {user?.email}
-                </p>
+              <div className="ch-mpesa-banner">
+                <div>
+                  <span className="ch-mpesa-label">PAYMENT METHOD</span>
+                  <h3>M-Pesa</h3>
+                  <p>Pay directly from your registered mobile wallet.</p>
+                </div>
+                <div className="ch-mpesa-mark">M</div>
               </div>
 
+              {paymentMessage && (
+                <div className="ch-alert ch-alert-success" role="status">
+                  <span>✓</span>
+                  <div>
+                    <strong>Request submitted</strong>
+                    <p>{paymentMessage}</p>
+                  </div>
+                </div>
+              )}
+
+              {paymentError && (
+                <div className="ch-alert ch-alert-error" role="alert">
+                  <span>!</span>
+                  <div>
+                    <strong>Payment could not be started</strong>
+                    <p>{paymentError}</p>
+                  </div>
+                </div>
+              )}
+
+              <form onSubmit={handlePayment} className="ch-payment-form">
+                <div className="ch-field">
+                  <label htmlFor="payment-amount">Amount (KES)</label>
+                  <div className="ch-input-wrap">
+                    <span className="ch-input-prefix">KSh</span>
+                    <input
+                      id="payment-amount"
+                      type="number"
+                      min="1"
+                      step="1"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                      placeholder="Enter amount"
+                      required
+                      disabled={paymentLoading}
+                    />
+                  </div>
+                </div>
+
+                <div className="ch-field">
+                  <label htmlFor="payment-phone">M-Pesa phone number</label>
+                  <input
+                    id="payment-phone"
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    placeholder="0712345678 or 254712345678"
+                    required
+                    disabled={paymentLoading}
+                  />
+                  <span className="ch-field-help">
+                    Enter the Kenyan number that should receive the payment prompt.
+                  </span>
+                </div>
+
+                <button
+                  className="ch-pay-button"
+                  type="submit"
+                  disabled={paymentLoading}
+                >
+                  {paymentLoading ? (
+                    <>
+                      <span className="ch-spinner" />
+                      Sending request...
+                    </>
+                  ) : (
+                    <>Continue to M-Pesa <span>→</span></>
+                  )}
+                </button>
+
+                <p className="ch-security-note">
+                  <span>▣</span> Never share your M-Pesa PIN with anyone.
+                </p>
+              </form>
+            </section>
+
+            <aside className="ch-side-column">
+              <section className="ch-card ch-account-card">
+                <div className="ch-card-heading">
+                  <div className="ch-heading-icon blue-icon">♙</div>
+                  <div>
+                    <h2>My account</h2>
+                    <p>Your profile information</p>
+                  </div>
+                </div>
+
+                <div className="ch-profile">
+                  <div className="ch-profile-avatar">
+                    {firstName.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <strong>{user?.first_name || user?.username}</strong>
+                    <span>{user?.role || "Student"}</span>
+                  </div>
+                </div>
+
+                <div className="ch-info-row">
+                  <span>Username</span>
+                  <strong>{user?.username || "—"}</strong>
+                </div>
+                <div className="ch-info-row">
+                  <span>Email address</span>
+                  <strong className="ch-email-value">
+                    {user?.email || "Not provided"}
+                  </strong>
+                </div>
+                <div className="ch-info-row">
+                  <span>Account role</span>
+                  <strong>
+                    <span className="ch-role-badge">
+                      {user?.role || "Student"}
+                    </span>
+                  </strong>
+                </div>
+              </section>
+
+              <section className="ch-help-card">
+                <div className="ch-help-icon">i</div>
+                <div>
+                  <h3>Need assistance?</h3>
+                  <p>
+                    If a payment prompt does not arrive, check the phone number
+                    and try again. Contact your university administrator if the
+                    problem continues.
+                  </p>
+                </div>
+              </section>
+            </aside>
+          </div>
+        ) : (
+          <section>
+            <div className="ch-section-title">
               <div>
-                <p className="text-gray-500 text-sm">
-                  Role
-                </p>
-
-                <p className="font-medium">
-                  {user?.role}
-                </p>
+                <h2>System overview</h2>
+                <p>Key records across your university portal</p>
               </div>
-
+              <span className="ch-overview-badge">Live overview</span>
             </div>
 
-          </div>
+            {loading ? (
+              <div className="ch-card ch-loading">
+                <span className="ch-spinner ch-spinner-blue" />
+                Loading dashboard statistics...
+              </div>
+            ) : (
+              <div className="ch-stats-grid">
+                {statsCards.map((card) => (
+                  <div className="ch-card ch-stat-card" key={card.title}>
+                    <div className={`ch-stat-icon ${card.color}`}>
+                      {card.icon}
+                    </div>
+                    <div>
+                      <p>{card.title}</p>
+                      <strong>{card.value.toLocaleString()}</strong>
+                      <span>Recorded in the system</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
 
-        </div>
-
-      </div>
-    );
-  }
-
-  // ==================================================
-  // ADMIN DASHBOARD
-  // ==================================================
-
-  return (
-    <div className="p-6">
-
-      {/* Welcome */}
-
-      <div className="mb-8">
-
-        <h1 className="text-3xl font-bold">
-          Welcome, {user?.username}
-        </h1>
-
-        <p className="text-gray-500 mt-2">
-          Role: {user?.role}
-        </p>
-
-      </div>
-
-      {loading ? (
-        <p>Loading dashboard...</p>
-      ) : (
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-
-          <DashboardCard
-            title="Students"
-            value={stats.students}
-          />
-
-          <DashboardCard
-            title="Lecturers"
-            value={stats.lecturers}
-          />
-
-          <DashboardCard
-            title="Departments"
-            value={stats.departments}
-          />
-
-          <DashboardCard
-            title="Courses"
-            value={stats.courses}
-          />
-
-          <DashboardCard
-            title="Enrollments"
-            value={stats.enrollments}
-          />
-
-          <DashboardCard
-            title="Payments"
-            value={stats.payments}
-          />
-
-        </div>
-
-      )}
-
+        <footer className="ch-footer">
+          <span>CampusHub</span>
+          <span>University Management System</span>
+        </footer>
+      </main>
     </div>
   );
 };
-
-
-// ==================================================
-// ADMIN DASHBOARD CARD
-// ==================================================
-
-const DashboardCard = ({ title, value }) => {
-  return (
-    <div className="bg-white rounded-xl shadow p-6">
-
-      <h2 className="text-gray-500 text-sm">
-        {title}
-      </h2>
-
-      <p className="text-3xl font-bold mt-2">
-        {value}
-      </p>
-
-    </div>
-  );
-};
-
 
 export default Dashboard;
