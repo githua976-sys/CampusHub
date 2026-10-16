@@ -1,20 +1,12 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function Navbar() {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
 
-    const handleLogout = () => {
-        logout();
-        navigate("/login");
-    };
-
-    const linkStyle = {
-        color: "white",
-        textDecoration: "none",
-        fontWeight: "500",
-    };
+    // Capitalize the first letter of strings safely
+    const capitalize = (str) => str ? str.charAt(0).toUpperCase() + str.slice(1) : "";
 
     return (
         <nav
@@ -22,43 +14,52 @@ export default function Navbar() {
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                padding: "15px 30px",
-                background: "#1f2937",
+                height: "64px",               // Standard fixed navbar height
+                padding: "0 32px",            // Clean, wide horizontal padding
+                background: "#1e293b",        // Deep slate background to match your UI
                 color: "white",
+                borderBottom: "1px solid #334155", // Subtle bottom border separation
+                boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1)",
             }}
         >
-            <h2>🎓 CampusHub</h2>
+            {/* Left Side: Brand Logo */}
+            <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "700", tracking: "-0.025em" }}>
+                🎓 CampusHub
+            </h2>
 
-            <div style={{ display: "flex", gap: "20px" }}>
-                <Link to="/dashboard" style={linkStyle}>
-                    Dashboard
-                </Link>
-
-                <Link to="/students" style={linkStyle}>
-                    Students
-                </Link>
-
-                <Link to="/lecturers" style={linkStyle}>
-                    Lecturers
-                </Link>
-
-                <Link to="/departments" style={linkStyle}>
-                    Departments
-                </Link>
-
-                <Link to="/courses" style={linkStyle}>
-                    Courses
-                </Link>
-                <Link to="/grades" style={linkStyle}>
-                    Grades
-                </Link>
-            </div>
-
-            <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
+            {/* Right Side: Clean Profile Section */}
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                 {user && (
-                    <span>
-                        👤 {user.username} ({user.role})
-                    </span>
+                    <>
+                        {/* Meta Text Stack */}
+                        <div style={{ textAlign: "right", display: "flex", flexDirection: "column" }}>
+                            <span style={{ fontSize: "14px", fontWeight: "600", color: "#f8fafc" }}>
+                                {capitalize(user.username)}
+                            </span>
+                            <span style={{ fontSize: "12px", color: "#94a3b8", marginTop: "2px" }}>
+                                {capitalize(user.role)}
+                            </span>
+                        </div>
+
+                        {/* Visual Avatar Bubble */}
+                        <div
+                            style={{
+                                width: "36px",
+                                height: "36px",
+                                borderRadius: "50%",
+                                backgroundColor: "#2563eb", // Vibrant blue circle
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontWeight: "700",
+                                fontSize: "14px",
+                                textTransform: "uppercase",
+                                userSelect: "none"
+                            }}
+                        >
+                            {user.username ? user.username.charAt(0) : "U"}
+                        </div>
+                    </>
                 )}
             </div>
         </nav>
