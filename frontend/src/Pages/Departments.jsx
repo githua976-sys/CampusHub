@@ -1,97 +1,175 @@
+import { useEffect, useState } from "react";
+import api from "../api/axios";
+
 export default function Departments() {
+    const [departments, setDepartments] = useState([]);
+    const [name, setName] = useState("");
+    const [description, setDescription] = useState("");
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+
+    const fetchDepartments = async () => {
+        try {
+            setError("");
+
+            const response = await api.get("departments/");
+            const data = response.data;
+
+            setDepartments(
+                Array.isArray(data) ? data : data.results || []
+            );
+        } catch (err) {
+            console.error("Fetch departments error:", err);
+            setError(
+                err.response?.data?.detail ||
+                "Failed to load departments."
+            );
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchDepartments();
+    }, []);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        try {
+            setError("");
+
+            await api.post("departments/", {
+                name: name.trim(),
+                description: description.trim(),
+            });
+
+            alert("Department added successfully!");
+
+            setName("");
+            setDescription("");
+
+            await fetchDepartments();
+        } catch (err) {
+            console.error("Add department error:", err.response?.data);
+            setError(
+                err.response?.data?.name?.[0] ||
+                err.response?.data?.detail ||
+                err.response?.data?.description?.[0] ||
+                "Failed to add department. Check the required fields and permissions."
+            );
+        }
+    };
+
+    const deleteDepartment = async (id) => {
+        const confirmed = window.confirm(
+            "Are you sure you want to delete this department?"
+        );
+
+        if (!confirmed) return;
+
+        try {
+            await api.delete(`departments/${id}/`);
+            alert("Department deleted successfully!");
+            await fetchDepartments();
+        } catch (err) {
+            console.error("Delete department error:", err.response?.data);
+            alert(
+                err.response?.data?.detail ||
+                "Failed to delete department. It may have associated students or courses."
+            );
+        }
+    };
+
     return (
-        <div style={styles.container}>
-            <div style={styles.header}>
-                <div>
-                    <h1 style={styles.title}>Departments Management</h1>
-                    <p style={styles.subtitle}>
-                        View and manage academic departments.
-                    </p>
+        <div style={{ padding: "30px" }}>
+            <h1>Departments Management</h1>
+            <p>Manage academic departments in CampusHub.</p>
+
+            <hr />
+
+            <form onSubmit={handleSubmit}>
+                <h3>Add Department</h3>
+
+                <div style={{ marginBottom: "15px" }}>
+                    <input
+                        type="text"
+                        placeholder="Department Name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        required
+                    />
                 </div>
 
-                <div style={styles.badge}>
-                    CampusHub
+                <div style={{ marginBottom: "15px" }}>
+                    <textarea
+                        placeholder="Description (optional)"
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        rows="3"
+                    />
                 </div>
-            </div>
 
-            <div style={styles.card}>
-                <div style={styles.icon}>🏛️</div>
-                <h2 style={styles.cardTitle}>Academic Departments</h2>
-                <p style={styles.description}>
-                    Manage your institution's departments and organize
-                    academic programs in one place.
-                </p>
+                <button type="submit">
+                    Add Department
+                </button>
+            </form>
 
-                <div style={styles.notice}>
-                    Department management features can be connected to
-                    your Django REST API here.
-                </div>
-            </div>
+            <hr />
+
+            <h2>Departments List</h2>
+
+            {error && (
+                <p style={{ color: "red" }}>{error}</p>
+            )}
+
+            {loading ? (
+                <p>Loading departments...</p>
+            ) : (
+                <table
+                    border="1"
+                    cellPadding="10"
+                    width="100%"
+                    style={{ borderCollapse: "collapse" }}
+                >
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Department Name</th>
+                            <th>Description</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {departments.length === 0 ? (
+                            <tr>
+                                <td colSpan="4">
+                                    No departments found.
+                                </td>
+                            </tr>
+                        ) : (
+                            departments.map((dept) => (
+                                <tr key={dept.id}>
+                                    <td>{dept.id}</td>
+                                    <td>{dept.name}</td>
+                                    <td>{dept.description || "—"}</td>
+                                    <td>
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                deleteDepartment(dept.id)
+                                            }
+                                        >
+                                            Delete
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                </table>
+            )}
         </div>
     );
 }
-
-const styles = {
-    container: {
-        padding: "32px",
-        background: "#f8fafc",
-        minHeight: "100vh",
-        fontFamily: "Arial, sans-serif",
-        boxSizing: "border-box",
-    },
-    header: {
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        flexWrap: "wrap",
-        gap: "16px",
-        marginBottom: "30px",
-    },
-    title: {
-        margin: "0 0 8px",
-        color: "#1e293b",
-        fontSize: "28px",
-    },
-    subtitle: {
-        margin: 0,
-        color: "#64748b",
-        fontSize: "15px",
-    },
-    badge: {
-        background: "#dbeafe",
-        color: "#1d4ed8",
-        padding: "10px 16px",
-        borderRadius: "8px",
-        fontWeight: "bold",
-    },
-    card: {
-        background: "#ffffff",
-        padding: "30px",
-        borderRadius: "12px",
-        border: "1px solid #e2e8f0",
-        boxShadow: "0 4px 12px rgba(15, 23, 42, 0.04)",
-        maxWidth: "700px",
-    },
-    icon: {
-        fontSize: "36px",
-        marginBottom: "16px",
-    },
-    cardTitle: {
-        color: "#1e293b",
-        margin: "0 0 12px",
-        fontSize: "21px",
-    },
-    description: {
-        color: "#64748b",
-        lineHeight: 1.7,
-        margin: "0 0 20px",
-    },
-    notice: {
-        background: "#eff6ff",
-        color: "#1e40af",
-        padding: "16px",
-        borderRadius: "8px",
-        lineHeight: 1.6,
-        fontSize: "14px",
-    },
-};

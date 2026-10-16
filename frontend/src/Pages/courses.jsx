@@ -1,162 +1,195 @@
+import { useEffect, useState } from "react";
+import api from "../api/axios";
+
 export default function Courses() {
+    const [courses, setCourses] = useState([]);
+    const [departments, setDepartments] = useState([]);
+    const [code, setCode] = useState("");
+    const [name, setName] = useState("");
+    const [department, setDepartment] = useState("");
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+
+    const fetchCourses = async () => {
+        try {
+            const response = await api.get("courses/");
+            const data = response.data;
+            setCourses(Array.isArray(data) ? data : data.results || []);
+        } catch (err) {
+            console.error("Courses error:", err);
+            setError("Failed to load courses. Check your login and backend.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchDepartments = async () => {
+        try {
+            const response = await api.get("departments/");
+            const data = response.data;
+            setDepartments(Array.isArray(data) ? data : data.results || []);
+        } catch (err) {
+            console.error("Departments error:", err);
+        }
+    };
+
+    useEffect(() => {
+        fetchCourses();
+        fetchDepartments();
+    }, []);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setError("");
+
+        try {
+            await api.post("courses/", {
+                code: code.trim(),
+                name: name.trim(),
+                department: department,
+            });
+
+            alert("Course added successfully!");
+            setCode("");
+            setName("");
+            setDepartment("");
+            await fetchCourses();
+        } catch (err) {
+            console.error("Add course error:", err.response?.data);
+            setError(
+                JSON.stringify(err.response?.data || "Failed to add course.")
+            );
+        }
+    };
+
+    const deleteCourse = async (id) => {
+        if (!window.confirm("Are you sure you want to delete this course?")) {
+            return;
+        }
+
+        try {
+            await api.delete(`courses/${id}/`);
+            await fetchCourses();
+        } catch (err) {
+            console.error("Delete course error:", err.response?.data);
+            setError("Failed to delete course.");
+        }
+    };
+
     return (
-        <div style={styles.container}>
-            <div style={styles.header}>
-                <div>
-                    <h1 style={styles.title}>Courses Management</h1>
-                    <p style={styles.subtitle}>
-                        Manage academic courses and course information.
-                    </p>
+        <div style={{ padding: "30px" }}>
+            <h1>Courses Management</h1>
+            <p>Manage academic courses in CampusHub.</p>
+
+            <hr />
+
+            <h3>Add Course</h3>
+
+            <form onSubmit={handleSubmit}>
+                <div style={{ marginBottom: "15px" }}>
+                    <input
+                        type="text"
+                        placeholder="Course Code (e.g. CSC101)"
+                        value={code}
+                        onChange={(e) => setCode(e.target.value)}
+                        required
+                    />
                 </div>
 
-                <div style={styles.badge}>🎓 CampusHub</div>
-            </div>
-
-            <div style={styles.statsGrid}>
-                <div style={styles.card}>
-                    <div style={styles.icon}>📚</div>
-                    <p style={styles.label}>Total Courses</p>
-                    <h2 style={styles.value}>—</h2>
+                <div style={{ marginBottom: "15px" }}>
+                    <input
+                        type="text"
+                        placeholder="Course Name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        required
+                    />
                 </div>
 
-                <div style={styles.card}>
-                    <div style={styles.icon}>🏛️</div>
-                    <p style={styles.label}>Departments</p>
-                    <h2 style={styles.value}>—</h2>
+                <div style={{ marginBottom: "15px" }}>
+                    <select
+                        value={department}
+                        onChange={(e) => setDepartment(e.target.value)}
+                        required
+                    >
+                        <option value="">Select Department</option>
+                        {departments.map((dept) => (
+                            <option key={dept.id} value={dept.id}>
+                                {dept.name}
+                            </option>
+                        ))}
+                    </select>
                 </div>
 
-                <div style={styles.card}>
-                    <div style={styles.icon}>👨‍🏫</div>
-                    <p style={styles.label}>Assigned Lecturers</p>
-                    <h2 style={styles.value}>—</h2>
-                </div>
-            </div>
+                <button type="submit">Add Course</button>
+            </form>
 
-            <div style={styles.tableCard}>
-                <h2 style={styles.sectionTitle}>Course Directory</h2>
-                <p style={styles.description}>
-                    View and organize courses offered by your institution.
-                </p>
+            {error && (
+                <p style={{ color: "red", marginTop: "15px" }}>{error}</p>
+            )}
 
+            <hr />
+
+            <h2>Courses List</h2>
+
+            {loading ? (
+                <p>Loading courses...</p>
+            ) : (
                 <div style={{ overflowX: "auto" }}>
-                    <table style={styles.table}>
+                    <table
+                        border="1"
+                        cellPadding="10"
+                        width="100%"
+                        style={{ borderCollapse: "collapse" }}
+                    >
                         <thead>
                             <tr>
-                                <th style={styles.th}>Course Code</th>
-                                <th style={styles.th}>Course Name</th>
-                                <th style={styles.th}>Department</th>
-                                <th style={styles.th}>Lecturer</th>
+                                <th>ID</th>
+                                <th>Course Code</th>
+                                <th>Course Name</th>
+                                <th>Department</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
+
                         <tbody>
-                            <tr>
-                                <td colSpan="4" style={styles.empty}>
-                                    No course records loaded yet.
-                                </td>
-                            </tr>
+                            {courses.length === 0 ? (
+                                <tr>
+                                    <td colSpan="5">No courses found.</td>
+                                </tr>
+                            ) : (
+                                courses.map((course) => (
+                                    <tr key={course.id}>
+                                        <td>{course.id}</td>
+                                        <td>
+                                            {course.code ??
+                                                course.course_code ??
+                                                "N/A"}
+                                        </td>
+                                        <td>{course.name ?? "N/A"}</td>
+                                        <td>
+                                            {course.department_name ??
+                                                course.department?.name ??
+                                                course.department ??
+                                                "N/A"}
+                                        </td>
+                                        <td>
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    deleteCourse(course.id)
+                                                }
+                                            >
+                                                Delete
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
                         </tbody>
                     </table>
                 </div>
-            </div>
+            )}
         </div>
     );
 }
-
-const styles = {
-    container: {
-        minHeight: "100vh",
-        padding: "32px",
-        boxSizing: "border-box",
-        background: "#f8fafc",
-        fontFamily: "Arial, sans-serif",
-    },
-    header: {
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        flexWrap: "wrap",
-        gap: "16px",
-        marginBottom: "30px",
-    },
-    title: {
-        margin: "0 0 8px",
-        fontSize: "28px",
-        color: "#1e293b",
-    },
-    subtitle: {
-        margin: 0,
-        color: "#64748b",
-        fontSize: "15px",
-    },
-    badge: {
-        padding: "10px 16px",
-        borderRadius: "8px",
-        background: "#dbeafe",
-        color: "#1d4ed8",
-        fontWeight: "bold",
-    },
-    statsGrid: {
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
-        gap: "20px",
-        marginBottom: "28px",
-    },
-    card: {
-        padding: "24px",
-        borderRadius: "12px",
-        border: "1px solid #e2e8f0",
-        background: "#ffffff",
-        boxShadow: "0 4px 12px rgba(15, 23, 42, 0.04)",
-    },
-    icon: {
-        fontSize: "28px",
-        marginBottom: "12px",
-    },
-    label: {
-        margin: "0 0 10px",
-        color: "#64748b",
-        fontSize: "14px",
-    },
-    value: {
-        margin: 0,
-        fontSize: "27px",
-        color: "#1e293b",
-    },
-    tableCard: {
-        padding: "26px",
-        borderRadius: "12px",
-        border: "1px solid #e2e8f0",
-        background: "#ffffff",
-        boxShadow: "0 4px 12px rgba(15, 23, 42, 0.04)",
-    },
-    sectionTitle: {
-        margin: "0 0 10px",
-        fontSize: "21px",
-        color: "#1e293b",
-    },
-    description: {
-        marginBottom: "22px",
-        color: "#64748b",
-        fontSize: "14px",
-        lineHeight: 1.6,
-    },
-    table: {
-        width: "100%",
-        borderCollapse: "collapse",
-        textAlign: "left",
-    },
-    th: {
-        padding: "14px 12px",
-        background: "#f1f5f9",
-        color: "#475569",
-        fontSize: "13px",
-        borderBottom: "1px solid #e2e8f0",
-        whiteSpace: "nowrap",
-    },
-    empty: {
-        padding: "32px 12px",
-        textAlign: "center",
-        color: "#94a3b8",
-        fontSize: "14px",
-    },
-};
