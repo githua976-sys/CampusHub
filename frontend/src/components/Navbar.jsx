@@ -49,6 +49,9 @@ export default function Navbar() {
                 <Link to="/courses" style={linkStyle}>
                     Courses
                 </Link>
+                <Link to="/grades" style={linkStyle}>
+                    Grades
+                </Link>
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
