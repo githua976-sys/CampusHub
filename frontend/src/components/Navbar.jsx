@@ -10,6 +10,12 @@ export default function Navbar() {
         navigate("/login");
     };
 
+    const linkStyle = {
+        color: "white",
+        textDecoration: "none",
+        fontWeight: "500",
+    };
+
     return (
         <nav
             style={{
@@ -21,42 +27,35 @@ export default function Navbar() {
                 color: "white",
             }}
         >
-            {/* Logo */}
-            <h2>CampusHub</h2>
+            <h2>🎓 CampusHub</h2>
 
-            {/* Navigation Links */}
             <div style={{ display: "flex", gap: "20px" }}>
-                <Link to="/dashboard" style={{ color: "white" }}>
+                <Link to="/dashboard" style={linkStyle}>
                     Dashboard
                 </Link>
 
-                <Link to="/students" style={{ color: "white" }}>
+                <Link to="/students" style={linkStyle}>
                     Students
                 </Link>
 
-                <Link to="/lecturers" style={{ color: "white" }}>
+                <Link to="/lecturers" style={linkStyle}>
                     Lecturers
                 </Link>
 
-                <Link to="/departments" style={{ color: "white" }}>
+                <Link to="/departments" style={linkStyle}>
                     Departments
                 </Link>
 
-                <Link to="/courses" style={{ color: "white" }}>
+                <Link to="/courses" style={linkStyle}>
                     Courses
                 </Link>
             </div>
 
-            {/* User Section */}
             <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
                 {user && (
-                    <>
-                        <span>
-                            👤  ({user.role})
-                        </span>
-
-                        
-                    </>
+                    <span>
+                        👤 {user.username} ({user.role})
+                    </span>
                 )}
             </div>
         </nav>
