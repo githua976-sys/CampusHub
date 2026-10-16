@@ -3,7 +3,12 @@ from .models import Course
 
 
 class CourseSerializer(serializers.ModelSerializer):
+    department_name = serializers.CharField(
+        source="department.name",
+        read_only=True
+    )
 
     class Meta:
         model = Course
         fields = "__all__"
+        extra_fields = ["department_name"]
