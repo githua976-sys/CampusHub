@@ -10,6 +10,7 @@ import {
     FaClipboardList,
     FaFileAlt,
     FaSignOutAlt,
+    FaGraduationCap,
 } from "react-icons/fa";
 
 export default function Sidebar() {
@@ -121,6 +122,21 @@ export default function Sidebar() {
                                 Courses
                             </Link>
                         </li>
+                        <li>
+                     <Link
+                    to="/grades"
+                   style={{
+                   color: "white",
+                 textDecoration: "none",
+                 display: "flex",
+                alignItems: "center",
+                 gap: "10px",
+        }}
+    >
+        <FaGraduationCap />
+        Grades
+    </Link>
+</li>
                     </>
                 )}
 
