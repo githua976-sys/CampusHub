@@ -15,6 +15,21 @@ from students.models import Student
 from .models import Transaction
 from .serializers import TransactionSerializer
 from .services import MpesaService
+from rest_framework import generics
+
+class PaymentListView(generics.ListAPIView):
+    serializer_class = TransactionSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_staff:
+            return Transaction.objects.all()
+
+        return Transaction.objects.filter(
+            student__user=user
+        )
 
 
 class InitiatePaymentView(APIView):
