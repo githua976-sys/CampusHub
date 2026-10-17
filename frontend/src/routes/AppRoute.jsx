@@ -1,3 +1,4 @@
+
 import { Routes, Route, Navigate } from "react-router-dom";
 
 import Attendance from "../Pages/Attendance";
@@ -11,6 +12,7 @@ import Notes from "../Pages/Notes";
 import Students from "../Pages/Students";
 import Unauthorized from "../Pages/Unauthorised";
 import Payments from "../Pages/payments";
+import UserManagement from "../Pages/UserManagement";
 
 import ProtectedRoute from "../components/ProtectedRoute";
 import Layout from "../components/Layout";
@@ -18,20 +20,29 @@ import Layout from "../components/Layout";
 export default function AppRoutes() {
     return (
         <Routes>
-
             {/* Public routes */}
-            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route
+                path="/"
+                element={<Navigate to="/login" replace />}
+            />
             <Route path="/login" element={<Login />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
 
-            {/* Dashboard - all authenticated users */}
-            <Route element={<ProtectedRoute allowedRoles={["Admin", "Lecturer", "Student"]} />}>
+            {/* Routes for all authenticated users */}
+            <Route
+                element={
+                    <ProtectedRoute
+                        allowedRoles={["Admin", "Lecturer", "Student"]}
+                    />
+                }
+            >
                 <Route element={<Layout />}>
                     <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/notes" element={<Notes />} />
                 </Route>
             </Route>
 
-            {/* Admin routes */}
+            {/* Admin-only routes */}
             <Route element={<ProtectedRoute allowedRoles={["Admin"]} />}>
                 <Route element={<Layout />}>
                     <Route path="/students" element={<Students />} />
@@ -40,23 +51,28 @@ export default function AppRoutes() {
                     <Route path="/courses" element={<Courses />} />
                     <Route path="/attendance" element={<Attendance />} />
                     <Route path="/grades" element={<Grades />} />
-                    <Route path="/notes" element={<Notes />} />
+                    <Route path="/users/create" element={<UserManagement />} />
                 </Route>
             </Route>
-            
-             {/*protected route */}
+
+            {/* Payments: Admin and Student */}
             <Route
-  path="/payments"
-  element={
-    <ProtectedRoute allowedRoles={["Admin", "Student"]}>
-      <Payments />
-    </ProtectedRoute>
-  }
-/>
+                element={
+                    <ProtectedRoute
+                        allowedRoles={["Admin", "Student"]}
+                    />
+                }
+            >
+                <Route element={<Layout />}>
+                    <Route path="/payments" element={<Payments />} />
+                </Route>
+            </Route>
 
-            {/* Unknown route */}
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
-
+            {/* Unknown routes */}
+            <Route
+                path="*"
+                element={<Navigate to="/dashboard" replace />}
+            />
         </Routes>
     );
 }
