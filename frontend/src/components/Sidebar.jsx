@@ -123,19 +123,7 @@ export default function Sidebar() {
                             </Link>
                         </li>
                         <li>
-                     <Link
-                    to="/grades"
-                   style={{
-                   color: "white",
-                 textDecoration: "none",
-                 display: "flex",
-                alignItems: "center",
-                 gap: "10px",
-        }}
-    >
-        <FaGraduationCap />
-        Grades
-    </Link>
+                     
 </li>
                     </>
                 )}
